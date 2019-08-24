@@ -1,4 +1,4 @@
-package com.example.timmy;
+package xyz.jserrats.timmy;
 
 import org.junit.Test;
 

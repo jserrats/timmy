@@ -1,4 +1,4 @@
-package com.example.timmy;
+package xyz.jserrats.timmy;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
