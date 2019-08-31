@@ -8,6 +8,8 @@ public class RCPacket {
 
     private byte RF, RB, LF, LB;
     public int id;
+
+    String stringForm;
     private static final AtomicInteger sequence = new AtomicInteger();
 
     public RCPacket(int RF, int RB, int LF, int LB) {
@@ -17,11 +19,12 @@ public class RCPacket {
         this.LB = (byte) LB;
         this.id = sequence.getAndIncrement();
 
+        stringForm = "RF: " + RF + " RB: " + RB + "\nLF: " + LF + " LB: " + LB;
         Log.d("important", "Packet generated. ID: " + this.id);
 
     }
 
-    public byte[] generateRawByteArray() {
+    byte[] generateRawByteArray() {
         byte[] packet = new byte[4];
 
         packet[0] = RF;
@@ -32,13 +35,11 @@ public class RCPacket {
     }
 
     public boolean isEquivalent(RCPacket otherPacket) {
-
-        int diff = 5;
-
-        return (Math.abs(otherPacket.RF - this.RF) > diff ||
-                Math.abs(otherPacket.RB - this.RB) > diff ||
-                Math.abs(otherPacket.LF - this.LF) > diff ||
-                Math.abs(otherPacket.LB - this.LB) > diff);
-
+        return (RF == otherPacket.RF && RB == otherPacket.RB && LF == otherPacket.LF && LB == otherPacket.LF);
     }
+
+    public String toString() {
+        return stringForm;
+    }
+
 }

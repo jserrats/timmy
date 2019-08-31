@@ -27,12 +27,16 @@ public class DriveActivity extends AppCompatActivity {
     TimmyUpdater updater;
     String ip;
 
+    ControllerFilter filter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drive);
         this.controllerText = findViewById(R.id.controllerFeedback);
         this.connectionText = findViewById(R.id.connectionFeedback);
+
+        filter = new ControllerFilter();
     }
 
     @Override
@@ -69,41 +73,14 @@ public class DriveActivity extends AppCompatActivity {
         float r = event.getY();
         float l = event.getAxisValue(MotionEvent.AXIS_RZ);
 
-
-        int RF, RB, LF, LB;
-
-        if (r < 0) { // going forward
-            RF = (int) (r * -255);
-            RB = 0;
-        } else if (r > 0) { //going backward
-            RF = 0;
-            RB = (int) (r * 255);
-        } else { // still
-            RF = 0x00;
-            RB = 0x00;
-        }
-
-        if (l < 0) { // going forward
-            LF = (int) (l * -255);
-            LB = 0;
-        } else if (l > 0) { //going backward
-            LF = 0;
-            LB = (int) (l * 255);
-        } else { // still
-            LF = 0x00;
-            LB = 0x00;
-        }
-
-        this.updater.addInstruction(new RCPacket(RF, RB, LF, LB));
-
-        controllerText.setText("RF: " + RF + " RB: " + RB +
-                "\nLF: " + LF + " LB: " + LB);
-
+        RCPacket packet = filter.newRead(r, l);
+        controllerText.setText(packet.toString());
+        this.updater.addInstruction(packet);
         return super.onGenericMotionEvent(event);
     }
 
 
-    public class TimmyUpdater extends AsyncTask<RCSocket, Boolean, Boolean> {
+    public class TimmyUpdater extends AsyncTask<RCSocket, Boolean, Void> {
 
         private ArrayBlockingQueue<RCPacket> queue;
         private RCPacket lastRCpacket;
@@ -116,7 +93,7 @@ public class DriveActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Boolean doInBackground(RCSocket... rcSocket) {
+        protected Void doInBackground(RCSocket... rcSocket) {
             RCSocket socket;
 
             socket = rcSocket[0];
@@ -135,8 +112,7 @@ public class DriveActivity extends AppCompatActivity {
             } catch (InterruptedException | IOException e) {
                 e.printStackTrace();
             }
-            return available;
-
+            return null;
         }
 
         @Override
@@ -148,15 +124,6 @@ public class DriveActivity extends AppCompatActivity {
                 connectionText.setText("Connected Succesfully to " + ip);
             }
         }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
-            if (!result) {
-                connectionText.setText("Could not connect to Timmy :(");
-            }
-        }
-
 
         void addInstruction(RCPacket rcPacket) {
             if (!rcPacket.isEquivalent(lastRCpacket)) {
